@@ -8,6 +8,7 @@ async fn base() -> impl Responder {
     HttpResponse::Ok().body("Hello world!")
 }
 
+use std::env;
 async fn catch_all(request: HttpRequest) -> impl Responder {
     let client = reqwest::Client::new();
 
@@ -35,6 +36,9 @@ async fn catch_all(request: HttpRequest) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    let port = env::var("PORT").expect("Missing port number");
+    let port = port.parse::<u16>().expect("Invalid PORT");
+
     println!("running on: {}", String::from("http://127.0.0.1:8080"));
 
     HttpServer::new(|| {
@@ -43,7 +47,7 @@ async fn main() -> std::io::Result<()> {
             .service(base)
             .default_service(web::to(catch_all))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("0.0.0.0", port))?
     .run()
     .await
 }
