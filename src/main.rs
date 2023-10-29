@@ -2,20 +2,25 @@ use actix_cors::Cors;
 use actix_web::{get, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use reqwest::header::USER_AGENT;
 use serde_json::Value;
+use std::env;
 
 #[get("/")]
 async fn base() -> impl Responder {
     HttpResponse::Ok().body("Hello world!")
 }
 
-use std::env;
 async fn catch_all(request: HttpRequest) -> impl Responder {
     let client = reqwest::Client::new();
 
-    let path = String::from(request.path())
+    let base_url = String::from(request.path())
         .strip_prefix("/")
         .unwrap()
         .to_string();
+
+    let queries = request.query_string();
+
+    let path = format!("{base_url}?{queries}");
+    println!("requested path: {}", path);
 
     let data = client
         .get(path)
@@ -34,8 +39,11 @@ async fn catch_all(request: HttpRequest) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let port = env::var("PORT").expect("Missing port number");
-    let port = port.parse::<u16>().expect("Invalid PORT");
+    // let mut port: u16;
+    let port: u16 = match env::var("PORT") {
+        Ok(val) => val.parse::<u16>().expect("Invalid PORT"),
+        Err(_) => 8080,
+    };
 
     println!("running on: {}", String::from("http://127.0.0.1:8080"));
 
