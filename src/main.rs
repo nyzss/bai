@@ -42,10 +42,10 @@ async fn main() -> std::io::Result<()> {
     // let mut port: u16;
     let port: u16 = match env::var("PORT") {
         Ok(val) => val.parse::<u16>().expect("Invalid PORT"),
-        Err(_) => 8080,
+        Err(_) => 3000,
     };
 
-    println!("running on: {}", String::from("http://127.0.0.1:8080"));
+    println!("running on: {}", format!("http://127.0.0.1:{}", port));
 
     HttpServer::new(|| {
         App::new()
