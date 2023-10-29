@@ -56,8 +56,11 @@ jobs:
         run: sudo apt-get install sshpass
 
       - name: Copy docker-compose.yml file to server
-        run: >
-          sshpass -v -p ${{ secrets.SERVER_PASSWORD }} scp -o StrictHostKeyChecking=no docker-compose.yml root@${{ vars.SERVER_IP }}:~
+        shell: bash
+        env:
+          SUPER_SECRET: ${{ secrets.SERVER_PASSWORD }}
+        run: |
+          sshpass -v -p "$SUPER_SECRET" scp -o StrictHostKeyChecking=no docker-compose.yml root@${{ vars.SERVER_IP }}:~
 
       - name: Deploy
         uses: appleboy/ssh-action@master
