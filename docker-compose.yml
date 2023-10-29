@@ -1,8 +1,8 @@
 version: '3'
 
 services:
-  bai-api:
-    container_name: nyzs/mythril-api
+  bai_api:
+    container_name: bai-api 
     # environment:
       # DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD}@db:5432"
     restart: unless-stopped
@@ -11,6 +11,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+
   caddy:
     image: caddy/caddy:2.7.5-alpine
     container_name: caddy-service
