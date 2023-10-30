@@ -1,6 +1,9 @@
 use actix_cors::Cors;
 use actix_web::{get, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
-use reqwest::{header::USER_AGENT, StatusCode};
+use reqwest::{
+    header::{CONTENT_TYPE, USER_AGENT},
+    StatusCode,
+};
 use serde_json::Value;
 use std::env;
 
@@ -22,33 +25,34 @@ async fn catch_all(request: HttpRequest) -> impl Responder {
     let path = format!("{base_url}?{queries}");
     println!("requested path: {}", path);
 
-    if request.path().contains("uploads") {
-        let image_data = client
-            .get(&path)
-            .header(USER_AGENT, "Mythril / 0.1")
-            .send()
-            .await
-            .expect("Couldn't send request")
-            .bytes()
-            .await
-            .expect("Couldnt get image.");
-
-        // let image = image::load_from_memory(&image_data).expect("Couldnt load image.");
-
-        return HttpResponse::build(StatusCode::OK)
-            .content_type("image/jpeg")
-            .body(image_data);
-    }
-
-    let data = client
+    let fetch: reqwest::Response = client
         .get(&path)
         .header(USER_AGENT, "Mythril / 0.1")
         .send()
         .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap();
+        .expect("Couldn't send request!");
+
+    //lists out the header values cause we might need them
+    for (key, value) in fetch.headers().iter() {
+        println!("{:?}: {:?}", key, value);
+    }
+
+    let content_type = fetch
+        .headers()
+        .get(CONTENT_TYPE)
+        .expect("No content type found.")
+        .clone();
+
+    if content_type.to_str().unwrap().contains("image") {
+        let image_data = fetch.bytes().await.expect("Couldnt get image.");
+        // let image = image::load_from_memory(&image_data).expect("Couldnt load image.");
+
+        return HttpResponse::build(StatusCode::OK)
+            .content_type(content_type)
+            .body(image_data);
+    }
+
+    let data = fetch.text().await.unwrap();
 
     let raw: Value = serde_json::from_str(&data).unwrap();
     return HttpResponse::Ok().json(raw);
