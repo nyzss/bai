@@ -1,5 +1,9 @@
 use actix_cors::Cors;
-use actix_web::{get, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    get,
+    http::header::{CacheControl, CacheDirective},
+    web, App, HttpRequest, HttpResponse, HttpServer, Responder,
+};
 use reqwest::{
     header::{CONTENT_TYPE, USER_AGENT},
     StatusCode,
@@ -48,6 +52,10 @@ async fn catch_all(request: HttpRequest) -> impl Responder {
         // let image = image::load_from_memory(&image_data).expect("Couldnt load image.");
 
         return HttpResponse::build(StatusCode::OK)
+            .insert_header(CacheControl(vec![
+                CacheDirective::MaxAge(2592000),
+                CacheDirective::Public,
+            ]))
             .content_type(content_type)
             .body(image_data);
     }
